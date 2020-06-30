@@ -1,0 +1,40 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'com.pseuco.np20'
+version '0.1.0'
+
+sourceCompatibility = 1.14
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+    compile "com.beust:jcommander:1.71"
+
+    testImplementation 'junit:junit:4.12'
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    archiveFileName = 'simulator.jar'
+    destinationDirectory = file("$rootDir/out")
+    compileJava.options.encoding = 'UTF-8'
+    manifest {
+        attributes('Main-Class': 'com.pseuco.np20.Simulator')
+    }
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+application {
+    mainClassName = 'com.pseuco.np20.Simulator'
+}
