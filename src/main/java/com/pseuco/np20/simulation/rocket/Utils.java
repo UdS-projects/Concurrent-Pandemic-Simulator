@@ -31,7 +31,11 @@ public class Utils {
             this.maxX = this.scenario.getGridSize().getX();
             this.maxY = this.scenario.getGridSize().getY();
             this.xIterator = this.scenario.getPartition().getX().iterator();
-            this.currentY = this.yIterator.next();
+            if (this.yIterator.hasNext()) {
+                this.currentY = this.yIterator.next();
+            } else {
+                this.currentY = this.maxY;
+            }
         }
 
         @Override
