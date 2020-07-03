@@ -3,7 +3,8 @@
 
 build
 bin
-out
+out/*
+!out/.gitkeep
 
 .settings
 .classpath
