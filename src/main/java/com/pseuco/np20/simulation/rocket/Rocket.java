@@ -14,7 +14,10 @@ import com.pseuco.np20.validator.Validator;
  * This class has to implement the <em>Simulation</em> interface.
  * </p>
  */
-public class Rocket implements Simulation {
+public class Rocket implements Simulation
+{
+    private final int ticksAllowed;
+
     /**
      * Constructs a rocket with the given parameters.
      *
@@ -33,8 +36,9 @@ public class Rocket implements Simulation {
      * @param padding The padding to be used.
      * @param validator The validator to be called.
      */
-    public Rocket(Scenario scenario, int padding, Validator validator) throws InsufficientPaddingException {
-        // your concurrent implementation goes here
+    public Rocket(Scenario scenario, int padding, Validator validator) throws InsufficientPaddingException
+    {
+        ticksAllowed = 5;
     }
 
     @Override
