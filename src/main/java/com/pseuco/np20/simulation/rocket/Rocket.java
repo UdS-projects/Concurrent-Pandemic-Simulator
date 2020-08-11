@@ -94,12 +94,17 @@ public class Rocket implements Simulation
         while(patchesIterator.hasNext())
         {
             Rectangle patch = patchesIterator.next();
+            Rectangle[] paddings = new Rectangle[8];
 
             if(patch.getTopLeft().getY() > 0)
             {
                 Rectangle pTop = new Rectangle(
                         new XY(patch.getTopLeft().getX(), Math.max(0, patch.getTopLeft().getY() - padding)),
                         new XY(patch.getSize().getX(), Math.min(padding, patch.getTopLeft().getY())));
+                if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pTop, patch))
+                {
+                    paddings[0] = pTop;
+                }
             }
             if(patch.getTopLeft().getX() > 0)
             {
@@ -131,17 +136,17 @@ public class Rocket implements Simulation
                         new XY(patch.getTopLeft().getX(), patch.getBottomRight().getY()),
                         new XY(patch.getSize().getX(), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
             }
-            if(patch.getTopLeft().getY() > 0 && patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
+            if(patch.getTopLeft().getX() > 0 && patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
             {
                 Rectangle pBottomLeft = new Rectangle(
-                        new XY(patch.getTopLeft().getX() - padding, patch.getBottomRight().getY()),
-                        new XY(patch.getSize().getX(), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
+                        new XY(Math.max(0, patch.getTopLeft().getX() - padding), patch.getBottomRight().getY()),
+                        new XY(Math.min(padding, patch.getTopLeft().getX()), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
             }
             if(patch.getBottomRight().getX() < scenario.getGrid().getBottomRight().getX() && patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
             {
                 Rectangle pBottomRight = new Rectangle(
                         new XY(patch.getBottomRight().getX(), patch.getBottomRight().getY()),
-                        new XY(patch.getSize().getX(), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
+                        new XY(Math.min(padding, scenario.getGrid().getBottomRight().getX() - patch.getBottomRight().getX()), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
             }
 
             patches.add(patchesIterator.next());
