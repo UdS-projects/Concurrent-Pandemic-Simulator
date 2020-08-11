@@ -131,13 +131,17 @@ public class Rocket implements Simulation
                         new XY(patch.getTopLeft().getX(), patch.getBottomRight().getY()),
                         new XY(patch.getSize().getX(), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
             }
-            if()
+            if(patch.getTopLeft().getY() > 0 && patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
             {
-                Rectangle pBottomLeft
+                Rectangle pBottomLeft = new Rectangle(
+                        new XY(patch.getTopLeft().getX() - padding, patch.getBottomRight().getY()),
+                        new XY(patch.getSize().getX(), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
             }
-            if()
+            if(patch.getBottomRight().getX() < scenario.getGrid().getBottomRight().getX() && patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
             {
-                Rectangle pBottomRight
+                Rectangle pBottomRight = new Rectangle(
+                        new XY(patch.getBottomRight().getX(), patch.getBottomRight().getY()),
+                        new XY(patch.getSize().getX(), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
             }
 
             patches.add(patchesIterator.next());
