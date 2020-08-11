@@ -9,37 +9,80 @@ import java.util.stream.Collectors;
 
 public class Patch extends Thread implements Context
 {
+    private final int id;
     private boolean firstRun;
 
     private final Scenario scenario;
 
     private final Rectangle patchGrid;
+    private final Rectangle[] paddings;
     private final Rectangle allGrid;
+    private final List<Monitor> monitors;
 
-    private final List<Person> allPopulation;
+    private final List<Person> scenarioPopulation;
     private final List<Person> population;
 
     private final Map<String, List<Statistics>> statistics;
     private final List<TraceEntry> traces;
 
-    public Patch(Scenario pScenario, List<Person> pAllPopulation, Rectangle pPatchGrid)
+    public Patch(int pId, Scenario pScenario, Rectangle pPatchGrid, Rectangle[] pPaddings, List<Person> pScenarioPopulation)
     {
+        monitors = new ArrayList<>();
         population = new ArrayList<>();
         statistics = new HashMap<>();
         traces = new LinkedList<>();
-
         firstRun = true;
 
+        id = pId;
         scenario = pScenario;
-        allPopulation = pAllPopulation;
         patchGrid = pPatchGrid;
-        allGrid = null;
+        paddings = pPaddings;
+        allGrid = null; //Rechne selbst faggot
+        scenarioPopulation = pScenarioPopulation;
+    }
+
+    public int getPatchId()
+    {
+        return id;
+    }
+
+    public Rectangle getPatchGrid()
+    {
+        return patchGrid;
+    }
+
+    public Rectangle[] getPaddings()
+    {
+        return paddings;
+    }
+
+    @Override
+    public Rectangle getGrid()
+    {
+        return allGrid;
+    }
+
+    @Override
+    public List<Rectangle> getObstacles()
+    {
+        return scenario.getObstacles();
+    }
+
+    @Override
+    public List<Person> getPopulation()
+    {
+        return population;
+    }
+
+    public void addMonitor(Monitor m)
+    {
+        monitors.add(m);
     }
 
     // We take the people we need. No Data race cause shared allPopulation list is only read from.
     private void populate()
     {
-        for(Person person : allPopulation)
+        for(Person person : scenarioPopulation)
         {
             if(patchGrid.contains(person.getPosition()));
             {
@@ -87,24 +130,6 @@ public class Patch extends Thread implements Context
         {
             traces.add(new TraceEntry(population.stream().map(Person::getInfo).collect(Collectors.toList())));
         }
-    }
-
-    @Override
-    public Rectangle getGrid()
-    {
-        return allGrid;
-    }
-
-    @Override
-    public List<Rectangle> getObstacles()
-    {
-        return scenario.getObstacles();
-    }
-
-    @Override
-    public List<Person> getPopulation()
-    {
-        return population;
     }
 
     @Override
