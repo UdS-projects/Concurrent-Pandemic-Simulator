@@ -191,7 +191,7 @@ public class Rocket implements Simulation
 
             //All-Grid per 8 Fälle, kann Patch evt machen lol
 
-            Patch p = new Patch(patchId, scenario, patch, paddings, scenarioPopulation);
+            Patch p = new Patch(patchId, ticksAllowed, scenario, validator, patch, paddings, scenarioPopulation);
             patches.put(patchId, p);
             patchId++;
         }
@@ -210,7 +210,7 @@ public class Rocket implements Simulation
                     // Then they require a monitor for synchronisation
                     if(pj.getPatchGrid().overlaps(pi.getPaddings()[k]))
                     {
-                        Monitor m = new Monitor(i, j);
+                        Monitor m = new Monitor(pi, i, pj, j);
                         m.setIntersection(j, pj.getPatchGrid().intersect(pi.getPaddings()[k]));
                         int w = (k + 4) % 8;
                         m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
