@@ -5,6 +5,7 @@ import com.pseuco.np20.simulation.common.Person;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Monitor
@@ -68,21 +69,36 @@ public class Monitor
         }
     }
 
-    public synchronized Person[] getPopulation(int id)
-    {
+    public synchronized List<Person> getPopulation(int id) throws InterruptedException {
         if(id == patchId1)
         {
             while(population2.isEmpty())
             {
-
+                wait();
             }
+            List<Person> result = new LinkedList<>();
+            Iterator<Person> iter = population2.iterator();
+            while(iter.hasNext())
+            {
+                result.add(iter.next().clone(patch1));
+            }
+            notifyAll();
+            return result;
         }
         else if(id == patchId2)
         {
             while(population1.isEmpty())
             {
-
+                wait();
             }
+            List<Person> result = new LinkedList<>();
+            Iterator<Person> iter = population1.iterator();
+            while(iter.hasNext())
+            {
+                result.add(iter.next().clone(patch2));
+            }
+            notifyAll();
+            return result;
         }
 
         return null;
@@ -101,6 +117,7 @@ public class Monitor
             {
                 population1.add(iter.next().clone(patch2));
             }
+            notifyAll();
         }
         else if(id == patchId2)
         {
@@ -113,6 +130,7 @@ public class Monitor
             {
                 population2.add(iter.next().clone(patch1));
             }
+            notifyAll();
         }
     }
 

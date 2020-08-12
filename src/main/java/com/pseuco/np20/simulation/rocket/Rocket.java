@@ -7,6 +7,7 @@ import com.pseuco.np20.validator.InsufficientPaddingException;
 import com.pseuco.np20.validator.Validator;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -30,6 +31,7 @@ public class Rocket implements Simulation
     private final Set<Monitor> monitors;
 
     private final Map<String, List<Statistics>> statistics;
+    private final Map<String, List<RWStatistics>> statistics2;
     private final List<TraceEntry> traces;
 
     /**
@@ -57,6 +59,7 @@ public class Rocket implements Simulation
         monitors = new HashSet<>();
 
         statistics = new HashMap<>();
+        statistics2 = new HashMap<>();
         traces = new LinkedList<>();
 
         scenario = pScenario;
@@ -71,6 +74,7 @@ public class Rocket implements Simulation
 
         populate();
         initStatistics();
+        initTraces();
         initThreads();
     }
 
@@ -91,6 +95,24 @@ public class Rocket implements Simulation
         for(String queryKey : scenario.getQueries().keySet())
         {
             statistics.put(queryKey, new LinkedList<>());
+
+            List<RWStatistics> list = new LinkedList<>();
+            for(int i=0; i <= scenario.getTicks(); i++)
+            {
+                list.add(new RWStatistics());
+            }
+            statistics2.put(queryKey, list);
+        }
+    }
+
+    private void initTraces()
+    {
+        if(scenario.getTrace())
+        {
+            for(int i=0; i <= scenario.getTicks(); i++)
+            {
+                traces.add(new TraceEntry(new LinkedList<>()));
+            }
         }
     }
 
@@ -189,8 +211,6 @@ public class Rocket implements Simulation
                 }
             }
 
-            //All-Grid per 8 Fälle, kann Patch evt machen lol
-
             Patch p = new Patch(patchId, ticksAllowed, scenario, validator, patch, paddings, scenarioPopulation);
             patches.put(patchId, p);
             patchId++;
@@ -229,7 +249,7 @@ public class Rocket implements Simulation
     @Override
     public Output getOutput()
     {
-        throw new RuntimeException("not implemented");
+        return new Output(scenario, traces, statistics);
     }
 
     @Override
@@ -238,6 +258,38 @@ public class Rocket implements Simulation
         for(int i=0; i < patchCount; i++)
         {
             patches.get(i).start();
+        }
+        for(int i=0; i < patchCount; i++)
+        {
+            try
+            {
+                patches.get(i).join();
+            }
+            catch(InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+
+            for(String queryKey : patches.get(i).getStatistics().keySet())
+            {
+                List<Statistics> list = patches.get(i).getStatistics().get(queryKey);
+                for(int j=0; j < list.size(); j++)
+                {
+                    statistics2.get(queryKey).get(j).addStats(list.get(j));
+
+                    // Since the above for loop loops over all ticks + 1 - aka the sizes of trace and statistics lists
+                    // We can hijack it to also add all PersonInfos for tick j from thread i to main Rocket storage
+                    if(scenario.getTrace())
+                    {
+                        traces.get(j).getPopulation().addAll(patches.get(i).getTraces().get(j).getPopulation());
+                    }
+                }
+            }
+        }
+
+        for(String queryKey : statistics.keySet())
+        {
+            statistics.put(queryKey, statistics2.get(queryKey).stream().map(RWStatistics::getStatistics).collect(Collectors.toList()));
         }
     }
 }
