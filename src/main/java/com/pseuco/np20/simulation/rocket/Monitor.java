@@ -82,6 +82,7 @@ public class Monitor
             {
                 result.add(iter.next().clone(patch1));
             }
+            population2.clear();
             notifyAll();
             return result;
         }
@@ -97,6 +98,7 @@ public class Monitor
             {
                 result.add(iter.next().clone(patch2));
             }
+            population1.clear();
             notifyAll();
             return result;
         }

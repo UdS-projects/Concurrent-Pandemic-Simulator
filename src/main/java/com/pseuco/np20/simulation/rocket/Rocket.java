@@ -216,8 +216,7 @@ public class Rocket implements Simulation
             patchId++;
         }
 
-        patchCount = patchId + 1;
-
+        patchCount = patchId;
         for(int i=0; i < patchCount; i++)
         {
             Patch pi = patches.get(i);
@@ -226,24 +225,29 @@ public class Rocket implements Simulation
                 Patch pj = patches.get(j);
                 for(int k=0; k < 8; k++)
                 {
+                    System.out.println(k + " " + pi.getPaddings()[k]);
                     // If one of the paddings of patch i overlaps with the patchGrid of patch j
                     // Then they require a monitor for synchronisation
-                    if(pj.getPatchGrid().overlaps(pi.getPaddings()[k]))
+                    if(pi.getPaddings()[k] != null)
                     {
-                        Monitor m = new Monitor(pi, i, pj, j);
-                        m.setIntersection(j, pj.getPatchGrid().intersect(pi.getPaddings()[k]));
-                        int w = (k + 4) % 8;
-                        m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
-
-                        if(monitors.add(m))
+                        if(pj.getPatchGrid().overlaps(pi.getPaddings()[k]))
                         {
-                            pi.addMonitor(m);
-                            pj.addMonitor(m);
+                            Monitor m = new Monitor(pi, i, pj, j);
+                            m.setIntersection(j, pj.getPatchGrid().intersect(pi.getPaddings()[k]));
+                            int w = (k + 4) % 8;
+                            m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
+
+                            if(monitors.add(m))
+                            {
+                                pi.addMonitor(m);
+                                pj.addMonitor(m);
+                            }
                         }
                     }
                 }
             }
         }
+        System.out.println("monitors " + monitors.size());
     }
 
     @Override

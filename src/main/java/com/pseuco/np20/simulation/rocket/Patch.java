@@ -150,13 +150,7 @@ public class Patch extends Thread implements Context
     private void synchronize() throws InterruptedException
     {
         // Delete people in paddings
-        for(Person person : population)
-        {
-            if(!(patchGrid.contains(person.getPosition())))
-            {
-                population.remove(person);
-            }
-        }
+        population.removeIf(person -> !(patchGrid.contains(person.getPosition())));
 
         // Write into the monitors in parallel
         // This is ok because those writer threads ONLY read from non-locked data
@@ -197,6 +191,7 @@ public class Patch extends Thread implements Context
         List[] results = new List[monitors.size()];
         for(int i=0; i < monitors.size(); i++)
         {
+            //System.out.println("hey, im " + Thread.currentThread() + " mon size: " + monitors.size());
             int finalI = i;
             readers[i] = new Thread()
             {
@@ -212,18 +207,23 @@ public class Patch extends Thread implements Context
                     }
                 }
             };
+            readers[i].start();
         }
         for(int i=0; i < monitors.size(); i++)
         {
             readers[i].join();
         }
 
+        System.out.println("thread " + id + " res " + results[0]);
+
+        // TODO: See why no sync happens - there are no lists in results
         // Add the read persons to local storage
         for(List l : results)
         {
             for(Object person : l)
             {
-                population.add((Person)l);
+                System.out.println("person: " + ((Person)person).toString());
+                population.add((Person)person);
             }
         }
     }
@@ -234,6 +234,7 @@ public class Patch extends Thread implements Context
         {
             try
             {
+                System.out.println("tock1");
                 synchronize();
             }
             catch(InterruptedException e)
@@ -241,6 +242,8 @@ public class Patch extends Thread implements Context
                 e.printStackTrace();
             }
         }
+
+        System.out.println("tock2");
 
         for(Person person : population)
         {
@@ -289,17 +292,10 @@ public class Patch extends Thread implements Context
         initStatistics();
         extendStatistics();
         extendTraces();
-        try
-        {
-            synchronize();
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
 
         for(; currentTick < this.scenario.getTicks(); currentTick++)
         {
+            System.out.println("t" + id + " tick " + currentTick);
             validator.onPatchTick(currentTick, id);
             tick();
         }
