@@ -25,7 +25,7 @@ public class Patch extends Thread implements Context
     private final List<Person> population;
 
     private final Map<String, List<Statistics>> statistics;
-    private final List<TraceEntry> traces;
+    private final List<TraceEntryId> traces;
 
     public Patch(int pId, int pTicksAllowed, Scenario pScenario, Validator pValidator, Rectangle pPatchGrid, Rectangle[] pPaddings, List<Person> pScenarioPopulation)
     {
@@ -82,7 +82,7 @@ public class Patch extends Thread implements Context
         return statistics;
     }
 
-    public List<TraceEntry> getTraces()
+    public List<TraceEntryId> getTraces()
     {
         return traces;
     }
@@ -141,10 +141,14 @@ public class Patch extends Thread implements Context
     {
         if(scenario.getTrace())
         {
-            traces.add(new TraceEntry(population.stream()
+//            traces.add(new TraceEntry(population.stream()
+//                    .filter( (Person person) -> patchGrid.contains(person.getPosition()) )
+//                    .map(Person::getInfo).collect(Collectors.toList())));
+            traces.add(new TraceEntryId(population.stream()
                     .filter( (Person person) -> patchGrid.contains(person.getPosition()) )
-                    .map(Person::getInfo).collect(Collectors.toList())));
-            if(currentTick == 599)
+                    .map( (Person p) -> new PersonInfoId(p) ).collect(Collectors.toList())));
+
+            if(currentTick == scenario.getTicks() - 1)
             {
                 System.out.println("Thread " + id + " tick " + currentTick + " trace popNum " + traces.get(currentTick).getPopulation().size());
                 //System.out.println("Thread " + id + " pop0 in last trace " + traces.get(600).getPopulation().get(0).toString());
@@ -229,6 +233,8 @@ public class Patch extends Thread implements Context
                 population.add((Person)person);
             }
         }
+
+        population.sort( (Person p1, Person p2) -> p1.getId() - p2.getId() );
     }
 
     private void tick()

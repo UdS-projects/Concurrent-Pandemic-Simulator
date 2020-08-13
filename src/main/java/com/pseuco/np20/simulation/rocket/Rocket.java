@@ -32,7 +32,8 @@ public class Rocket implements Simulation
 
     private final Map<String, List<Statistics>> statistics;
     private final Map<String, List<RWStatistics>> statistics2;
-    private final List<TraceEntry> traces;
+    private final List<TraceEntryId> traces;
+    private final List<TraceEntry> tracesFinal;
 
     /**
      * Constructs a rocket with the given parameters.
@@ -61,13 +62,14 @@ public class Rocket implements Simulation
         statistics = new HashMap<>();
         statistics2 = new HashMap<>();
         traces = new LinkedList<>();
+        tracesFinal = new LinkedList<>();
 
         scenario = pScenario;
         padding = pPadding;
         validator = pValidator;
 
-        //ticksAllowed = calcTicksAllowed();
-        ticksAllowed = 3;
+        ticksAllowed = calcTicksAllowed();
+        //ticksAllowed = 5;
         if(ticksAllowed <= 0)
         {
             throw new InsufficientPaddingException(padding);
@@ -119,13 +121,24 @@ public class Rocket implements Simulation
         }
     }
 
+//    private void initTraces()
+//    {
+//        if(scenario.getTrace())
+//        {
+//            for(int i=0; i <= scenario.getTicks(); i++)
+//            {
+//                traces.add(new TraceEntry(new LinkedList<>()));
+//            }
+//        }
+//    }
+
     private void initTraces()
     {
         if(scenario.getTrace())
         {
             for(int i=0; i <= scenario.getTicks(); i++)
             {
-                traces.add(new TraceEntry(new LinkedList<>()));
+                traces.add(new TraceEntryId());
             }
         }
     }
@@ -268,7 +281,7 @@ public class Rocket implements Simulation
     @Override
     public Output getOutput()
     {
-        return new Output(scenario, traces, statistics);
+        return new Output(scenario, tracesFinal, statistics);
     }
 
     @Override
@@ -313,12 +326,19 @@ public class Rocket implements Simulation
         {
             for(int j=0; j < tSize; j++)
             {
-                if(i!=j && traces.get(scenario.getTicks()).getPopulation().get(i).getName().equals(traces.get(scenario.getTicks()).getPopulation().get(j).getName()))
+                if(i!=j && traces.get(scenario.getTicks()).getPopulation().get(i).getInfo().getName().equals(traces.get(scenario.getTicks()).getPopulation().get(j).getInfo().getName()))
                 {
-                    System.out.println("dup found: at " + i + " " + traces.get(scenario.getTicks()).getPopulation().get(i).getName() + " and at " + j + " " + traces.get(scenario.getTicks()).getPopulation().get(j).getName());
+                    System.out.println("dup found: at " + i + " " + traces.get(scenario.getTicks()).getPopulation().get(i).getInfo().getName() + " and at " + j + " " + traces.get(scenario.getTicks()).getPopulation().get(j).getInfo().getName());
                 }
             }
         }
+        
         statistics.replaceAll((k, v) -> statistics2.get(k).stream().map(RWStatistics::getStatistics).collect(Collectors.toList()));
+
+        for(int i=0; i < traces.size(); i++)
+        {
+            traces.get(i).getPopulation().sort( (PersonInfoId p1, PersonInfoId p2) -> p1.getId() - p2.getId() );
+            tracesFinal.add(new TraceEntry(traces.get(i).getPopulation().stream().map(PersonInfoId::getInfo).collect(Collectors.toList())));
+        }
     }
 }
