@@ -66,16 +66,30 @@ public class Rocket implements Simulation
         padding = pPadding;
         validator = pValidator;
 
-        ticksAllowed = 5; //TODO
+        //ticksAllowed = calcTicksAllowed();
+        ticksAllowed = 3;
         if(ticksAllowed <= 0)
         {
             throw new InsufficientPaddingException(padding);
         }
+        System.out.println("Allowed Ticks: " + ticksAllowed);
 
         populate();
         initStatistics();
         initTraces();
         initThreads();
+    }
+
+    private int calcTicksAllowed()
+    {
+        for(int i=padding; i > 1; i--)
+        {
+            if(padding < (Math.ceil((i / scenario.getParameters().getIncubationTime()) * scenario.getParameters().getInfectionRadius()) + (i+1)))
+            {
+                return i-1;
+            }
+        }
+        return 0;
     }
 
     // We create the initial allPopulation list here so that everyone has a unique id
@@ -220,12 +234,12 @@ public class Rocket implements Simulation
         for(int i=0; i < patchCount; i++)
         {
             Patch pi = patches.get(i);
-            for(int j=i; j < patchCount; j++)
+            for(int j=i+1; j < patchCount; j++)
             {
                 Patch pj = patches.get(j);
                 for(int k=0; k < 8; k++)
                 {
-                    System.out.println(k + " " + pi.getPaddings()[k]);
+                    //System.out.println(k + " " + pi.getPaddings()[k]);
                     // If one of the paddings of patch i overlaps with the patchGrid of patch j
                     // Then they require a monitor for synchronisation
                     if(pi.getPaddings()[k] != null)
@@ -247,7 +261,8 @@ public class Rocket implements Simulation
                 }
             }
         }
-        System.out.println("monitors " + monitors.size());
+        System.out.println("Patches: " + patchCount);
+        System.out.println("Monitors: " + monitors.size());
     }
 
     @Override
@@ -280,20 +295,30 @@ public class Rocket implements Simulation
                 for(int j=0; j < list.size(); j++)
                 {
                     statistics2.get(queryKey).get(j).addStats(list.get(j));
+                }
+            }
 
-                    // Since the above for loop loops over all ticks + 1 - aka the sizes of trace and statistics lists
-                    // We can hijack it to also add all PersonInfos for tick j from thread i to main Rocket storage
-                    if(scenario.getTrace())
-                    {
-                        traces.get(j).getPopulation().addAll(patches.get(i).getTraces().get(j).getPopulation());
-                    }
+            if(scenario.getTrace())
+            {
+                for(int j=0; j < traces.size(); j++)
+                {
+                    traces.get(j).getPopulation().addAll(patches.get(i).getTraces().get(j).getPopulation());
                 }
             }
         }
 
-        for(String queryKey : statistics.keySet())
+        int tSize = traces.get(scenario.getTicks()).getPopulation().size();
+        System.out.println("Rocket last trace size " + tSize);
+        for(int i=0; i < tSize; i++)
         {
-            statistics.put(queryKey, statistics2.get(queryKey).stream().map(RWStatistics::getStatistics).collect(Collectors.toList()));
+            for(int j=0; j < tSize; j++)
+            {
+                if(i!=j && traces.get(scenario.getTicks()).getPopulation().get(i).getName().equals(traces.get(scenario.getTicks()).getPopulation().get(j).getName()))
+                {
+                    System.out.println("dup found: at " + i + " " + traces.get(scenario.getTicks()).getPopulation().get(i).getName() + " and at " + j + " " + traces.get(scenario.getTicks()).getPopulation().get(j).getName());
+                }
+            }
         }
+        statistics.replaceAll((k, v) -> statistics2.get(k).stream().map(RWStatistics::getStatistics).collect(Collectors.toList()));
     }
 }

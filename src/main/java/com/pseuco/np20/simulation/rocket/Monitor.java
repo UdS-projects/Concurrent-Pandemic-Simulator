@@ -21,8 +21,11 @@ public class Monitor
     private Rectangle intersection1;
     private Rectangle intersection2;
 
-    private List<Person> population1;
-    private List<Person> population2;
+    private final List<Person> population1;
+    private final List<Person> population2;
+
+    private boolean pop1Full;
+    private boolean pop2Full;
 
     public Monitor(Patch pPatch1, int pPatchId1, Patch pPatch2, int pPatchId2)
     {
@@ -72,7 +75,7 @@ public class Monitor
     public synchronized List<Person> getPopulation(int id) throws InterruptedException {
         if(id == patchId1)
         {
-            while(population2.isEmpty())
+            while(!pop2Full)
             {
                 wait();
             }
@@ -83,12 +86,13 @@ public class Monitor
                 result.add(iter.next().clone(patch1));
             }
             population2.clear();
+            pop2Full = false;
             notifyAll();
             return result;
         }
         else if(id == patchId2)
         {
-            while(population1.isEmpty())
+            while(!pop1Full)
             {
                 wait();
             }
@@ -99,6 +103,7 @@ public class Monitor
                 result.add(iter.next().clone(patch2));
             }
             population1.clear();
+            pop1Full = false;
             notifyAll();
             return result;
         }
@@ -110,7 +115,7 @@ public class Monitor
     {
         if(id == patchId1)
         {
-            while(!population1.isEmpty())
+            while(pop1Full)
             {
                 wait();
             }
@@ -119,11 +124,12 @@ public class Monitor
             {
                 population1.add(iter.next().clone(patch2));
             }
+            pop1Full = true;
             notifyAll();
         }
         else if(id == patchId2)
         {
-            while(!population2.isEmpty())
+            while(pop2Full)
             {
                 wait();
             }
@@ -132,6 +138,7 @@ public class Monitor
             {
                 population2.add(iter.next().clone(patch1));
             }
+            pop2Full = true;
             notifyAll();
         }
     }

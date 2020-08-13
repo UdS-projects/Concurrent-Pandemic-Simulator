@@ -144,6 +144,11 @@ public class Patch extends Thread implements Context
             traces.add(new TraceEntry(population.stream()
                     .filter( (Person person) -> patchGrid.contains(person.getPosition()) )
                     .map(Person::getInfo).collect(Collectors.toList())));
+            if(currentTick == 599)
+            {
+                System.out.println("Thread " + id + " tick " + currentTick + " trace popNum " + traces.get(currentTick).getPopulation().size());
+                //System.out.println("Thread " + id + " pop0 in last trace " + traces.get(600).getPopulation().get(0).toString());
+            }
         }
     }
 
@@ -162,7 +167,6 @@ public class Patch extends Thread implements Context
                 public void run()
                 {
                     Rectangle intersection = monitors.get(finalI).getIntersection(id);
-                    //List<Person> people = new LinkedList<>();
                     List<Person> people = population.stream().filter(
                             (Person person) -> intersection.contains(person.getPosition())
                     ).collect(Collectors.toList());
@@ -214,15 +218,14 @@ public class Patch extends Thread implements Context
             readers[i].join();
         }
 
-        System.out.println("thread " + id + " res " + results[0]);
+        //System.out.println("thread " + id + " res " + results[0]);
 
-        // TODO: See why no sync happens - there are no lists in results
         // Add the read persons to local storage
         for(List l : results)
         {
             for(Object person : l)
             {
-                System.out.println("person: " + ((Person)person).toString());
+                //System.out.println("person: " + ((Person)person).toString());
                 population.add((Person)person);
             }
         }
@@ -234,7 +237,7 @@ public class Patch extends Thread implements Context
         {
             try
             {
-                System.out.println("tock1");
+                //System.out.println("tock1");
                 synchronize();
             }
             catch(InterruptedException e)
@@ -243,7 +246,7 @@ public class Patch extends Thread implements Context
             }
         }
 
-        System.out.println("tock2");
+        //System.out.println("tock2");
 
         for(Person person : population)
         {
@@ -295,7 +298,7 @@ public class Patch extends Thread implements Context
 
         for(; currentTick < this.scenario.getTicks(); currentTick++)
         {
-            System.out.println("t" + id + " tick " + currentTick);
+            //System.out.println("t" + id + " tick " + currentTick);
             validator.onPatchTick(currentTick, id);
             tick();
         }
