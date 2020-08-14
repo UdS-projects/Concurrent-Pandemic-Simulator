@@ -15,4 +15,9 @@ public class TestCorrectness {
     public void testWeLoveNP15() {
         TestCase.getPublic("we_love_np").launchRocket(15);
     }
+
+//    @Test
+//    public void ourTest() {
+//        TestCase.getPublic("we_love_np").launchRocket(3);
+//    }
 }

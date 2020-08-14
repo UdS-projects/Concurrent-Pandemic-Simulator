@@ -74,6 +74,7 @@ public class Rocket implements Simulation
         {
             throw new InsufficientPaddingException(padding);
         }
+        System.out.println("Padding: " + padding);
         System.out.println("Allowed Ticks: " + ticksAllowed);
 
         populate();
@@ -82,16 +83,33 @@ public class Rocket implements Simulation
         initThreads();
     }
 
-    private int calcTicksAllowed()
+    private int calcTicksAllowedOld()
     {
         for(int i=padding; i > 1; i--)
         {
-            if(padding < (Math.ceil((i / scenario.getParameters().getIncubationTime()) * scenario.getParameters().getInfectionRadius()) + (i+1)))
+            if(padding < (Math.ceil((i / scenario.getParameters().getIncubationTime())
+                    * scenario.getParameters().getInfectionRadius()) + (i+1)))
             {
                 return i-1;
             }
         }
         return 0;
+    }
+
+    private int calcTicksAllowed()
+    {
+        int ticks = 0;
+        int spread = 0;
+        for(int i=1; spread <= padding; i++)
+        {
+            if(i % (scenario.getParameters().getIncubationTime() + 1) == 1)
+            {
+                spread += scenario.getParameters().getInfectionRadius();
+            }
+            spread += 2;
+            ticks = i;
+        }
+        return ticks - 1;
     }
 
     // We create the initial allPopulation list here so that everyone has a unique id
@@ -262,7 +280,16 @@ public class Rocket implements Simulation
                             Monitor m = new Monitor(pi, i, pj, j);
                             m.setIntersection(j, pj.getPatchGrid().intersect(pi.getPaddings()[k]));
                             int w = (k + 4) % 8;
-                            m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
+                            try
+                            {
+                                m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
+                            }
+                            catch (NullPointerException e)
+                            {
+                                System.out.println("Rec " + i + " grid " + pi.getPatchGrid().toString());
+                                System.out.println("Rec " + j + " grid " + pj.getPatchGrid().toString());
+                                throw e;
+                            }
 
                             if(monitors.add(m))
                             {
