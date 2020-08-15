@@ -82,7 +82,8 @@ public class Rocket implements Simulation
         initThreads();
     }
 
-    private int calcTicksAllowed()
+
+    private int calcTicksAllowed2()
     {
         int ticks = 0;
         int spread = 0;
@@ -95,8 +96,22 @@ public class Rocket implements Simulation
             spread += 2;
             ticks = i;
         }
-        return ticks - 1;
+     System.out.println("TicksAllowed: " + (ticks-1));
+     return ticks - 1;
     }
+
+
+    private int calcTicksAllowed()
+    {
+        for (int i = 1; i <= padding; i++) {
+            if(padding < (( (int) Math.ceil((double) i / scenario.getParameters().getIncubationTime()) * scenario.getParameters().getInfectionRadius())+i+1)) {
+                //System.out.println("TicksAllowed: " + (i-1));
+                return i - 1;
+            }
+        }
+        return 0;
+    }
+
 
     // We create the initial allPopulation list here so that everyone has a unique id
     private void populate()
