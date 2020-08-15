@@ -68,7 +68,7 @@ public class Rocket implements Simulation
         padding = pPadding;
         validator = pValidator;
 
-        ticksAllowed = calcTicksAllowed() - 1;
+        ticksAllowed = calcTicksAllowed();
         //System.out.println("TicksAllowed: " + ticksAllowed);
 
         if(ticksAllowed <= 0)

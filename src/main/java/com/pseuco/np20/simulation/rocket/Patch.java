@@ -12,6 +12,7 @@ public class Patch extends Thread implements Context
 {
     private final int id;
     private final int ticksAllowed;
+    private int tickCounter;
     private int currentTick;
 
     private final Scenario scenario;
@@ -237,6 +238,7 @@ public class Patch extends Thread implements Context
 
     private void tick()
     {
+        /**   This is a Try
         if(currentTick % ticksAllowed == 0)
         {
             try
@@ -247,6 +249,23 @@ public class Patch extends Thread implements Context
             {
                 e.printStackTrace();
             }
+        }
+         */
+        if (tickCounter == (ticksAllowed - 1))
+        {
+            try
+            {
+                synchronize();
+                tickCounter = 0;
+            }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            tickCounter++;
         }
 
         for(Person person : population)
