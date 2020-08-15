@@ -251,7 +251,7 @@ public class Patch extends Thread implements Context
 
         for(Person person : population)
         {
-            validator.onPersonTick(currentTick+1, id, person.getId());
+            validator.onPersonTick(currentTick, id, person.getId());
             person.tick();
         }
 
@@ -300,7 +300,7 @@ public class Patch extends Thread implements Context
         for(; currentTick < this.scenario.getTicks(); currentTick++)
         {
             //System.out.println("t" + id + " tick " + currentTick);
-            validator.onPatchTick(currentTick+1, id);
+            validator.onPatchTick(currentTick, id);
             tick();
         }
     }
