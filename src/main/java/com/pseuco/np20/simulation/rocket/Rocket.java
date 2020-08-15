@@ -295,14 +295,7 @@ public class Rocket implements Simulation
     @Override
     public Output getOutput()
     {
-        if(scenario.getTrace())
-        {
-            return new Output(scenario, tracesFinal, statistics);
-        }
-        else
-        {
-            return new Output(scenario, null, statistics);
-        }
+        return new Output(scenario, tracesFinal, statistics);
     }
 
     @Override
@@ -357,10 +350,13 @@ public class Rocket implements Simulation
         
         statistics.replaceAll((k, v) -> statistics2.get(k).stream().map(RWStatistics::getStatistics).collect(Collectors.toList()));
 
-        for(int i=0; i < traces.size(); i++)
+        if(scenario.getTrace())
         {
-            traces.get(i).getPopulation().sort( (PersonInfoId p1, PersonInfoId p2) -> p1.getId() - p2.getId() );
-            tracesFinal.add(new TraceEntry(traces.get(i).getPopulation().stream().map(PersonInfoId::getInfo).collect(Collectors.toList())));
+            for(int i=0; i < traces.size(); i++)
+            {
+                traces.get(i).getPopulation().sort( (PersonInfoId p1, PersonInfoId p2) -> p1.getId() - p2.getId() );
+                tracesFinal.add(new TraceEntry(traces.get(i).getPopulation().stream().map(PersonInfoId::getInfo).collect(Collectors.toList())));
+            }
         }
     }
 }
