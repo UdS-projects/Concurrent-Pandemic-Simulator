@@ -68,7 +68,9 @@ public class Rocket implements Simulation
         padding = pPadding;
         validator = pValidator;
 
-        ticksAllowed = calcTicksAllowed();
+        ticksAllowed = calcTicksAllowed() - 1;
+        //System.out.println("TicksAllowed: " + ticksAllowed);
+
         if(ticksAllowed <= 0)
         {
             throw new InsufficientPaddingException(padding);
@@ -96,7 +98,6 @@ public class Rocket implements Simulation
             spread += 2;
             ticks = i;
         }
-     System.out.println("TicksAllowed: " + (ticks-1));
      return ticks - 1;
     }
 
@@ -105,7 +106,6 @@ public class Rocket implements Simulation
     {
         for (int i = 1; i <= padding; i++) {
             if(padding < (( (int) Math.ceil((double) i / scenario.getParameters().getIncubationTime()) * scenario.getParameters().getInfectionRadius())+i+1)) {
-                //System.out.println("TicksAllowed: " + (i-1));
                 return i - 1;
             }
         }
