@@ -148,11 +148,11 @@ public class Patch extends Thread implements Context
                     .filter( (Person person) -> patchGrid.contains(person.getPosition()) )
                     .map( (Person p) -> new PersonInfoId(p) ).collect(Collectors.toList())));
 
-            if(currentTick == scenario.getTicks() - 1)
-            {
-                System.out.println("Thread " + id + " tick " + currentTick + " trace popNum " + traces.get(currentTick).getPopulation().size());
-                //System.out.println("Thread " + id + " pop0 in last trace " + traces.get(600).getPopulation().get(0).toString());
-            }
+//            if(currentTick == scenario.getTicks() - 1)
+//            {
+//                System.out.println("Thread " + id + " tick " + currentTick + " trace popNum " + traces.get(currentTick).getPopulation().size());
+//                System.out.println("Thread " + id + " pop0 in last trace " + traces.get(600).getPopulation().get(0).toString());
+//            }
         }
     }
 
@@ -193,8 +193,6 @@ public class Patch extends Thread implements Context
 
         // Read from the monitors in parallel
         // This is ok because writing the people into local memory will happen sequentially afterwards
-        // Why even access the monitors in parallel then?
-        // Because I'm scared of deadlocks
         Thread[] readers = new Thread[monitors.size()];
         List[] results = new List[monitors.size()];
         for(int i=0; i < monitors.size(); i++)
@@ -243,7 +241,6 @@ public class Patch extends Thread implements Context
         {
             try
             {
-                //System.out.println("tock1");
                 synchronize();
             }
             catch(InterruptedException e)
@@ -251,8 +248,6 @@ public class Patch extends Thread implements Context
                 e.printStackTrace();
             }
         }
-
-        //System.out.println("tock2");
 
         for(Person person : population)
         {
@@ -305,7 +300,7 @@ public class Patch extends Thread implements Context
         for(; currentTick < this.scenario.getTicks(); currentTick++)
         {
             //System.out.println("t" + id + " tick " + currentTick);
-            validator.onPatchTick(currentTick, id);
+            validator.onPatchTick(currentTick+1, id);
             tick();
         }
     }

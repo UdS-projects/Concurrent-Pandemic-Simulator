@@ -69,31 +69,17 @@ public class Rocket implements Simulation
         validator = pValidator;
 
         ticksAllowed = calcTicksAllowed();
-        //ticksAllowed = 5;
         if(ticksAllowed <= 0)
         {
             throw new InsufficientPaddingException(padding);
         }
-        System.out.println("Padding: " + padding);
-        System.out.println("Allowed Ticks: " + ticksAllowed);
+//        System.out.println("Padding: " + padding);
+//        System.out.println("Allowed Ticks: " + ticksAllowed);
 
         populate();
         initStatistics();
         initTraces();
         initThreads();
-    }
-
-    private int calcTicksAllowedOld()
-    {
-        for(int i=padding; i > 1; i--)
-        {
-            if(padding < (Math.ceil((i / scenario.getParameters().getIncubationTime())
-                    * scenario.getParameters().getInfectionRadius()) + (i+1)))
-            {
-                return i-1;
-            }
-        }
-        return 0;
     }
 
     private int calcTicksAllowed()
@@ -280,16 +266,17 @@ public class Rocket implements Simulation
                             Monitor m = new Monitor(pi, i, pj, j);
                             m.setIntersection(j, pj.getPatchGrid().intersect(pi.getPaddings()[k]));
                             int w = (k + 4) % 8;
-                            try
-                            {
-                                m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
-                            }
-                            catch (NullPointerException e)
-                            {
-                                System.out.println("Rec " + i + " grid " + pi.getPatchGrid().toString());
-                                System.out.println("Rec " + j + " grid " + pj.getPatchGrid().toString());
-                                throw e;
-                            }
+                            m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
+//                            try
+//                            {
+//                                m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
+//                            }
+//                            catch (NullPointerException e)
+//                            {
+//                                System.out.println("Rec " + i + " grid " + pi.getPatchGrid().toString());
+//                                System.out.println("Rec " + j + " grid " + pj.getPatchGrid().toString());
+//                                throw e;
+//                            }
 
                             if(monitors.add(m))
                             {
@@ -301,14 +288,21 @@ public class Rocket implements Simulation
                 }
             }
         }
-        System.out.println("Patches: " + patchCount);
-        System.out.println("Monitors: " + monitors.size());
+//        System.out.println("Patches: " + patchCount);
+//        System.out.println("Monitors: " + monitors.size());
     }
 
     @Override
     public Output getOutput()
     {
-        return new Output(scenario, tracesFinal, statistics);
+        if(scenario.getTrace())
+        {
+            return new Output(scenario, tracesFinal, statistics);
+        }
+        else
+        {
+            return new Output(scenario, null, statistics);
+        }
     }
 
     @Override
@@ -347,18 +341,19 @@ public class Rocket implements Simulation
             }
         }
 
-        int tSize = traces.get(scenario.getTicks()).getPopulation().size();
-        System.out.println("Rocket last trace size " + tSize);
-        for(int i=0; i < tSize; i++)
-        {
-            for(int j=0; j < tSize; j++)
-            {
-                if(i!=j && traces.get(scenario.getTicks()).getPopulation().get(i).getInfo().getName().equals(traces.get(scenario.getTicks()).getPopulation().get(j).getInfo().getName()))
-                {
-                    System.out.println("dup found: at " + i + " " + traces.get(scenario.getTicks()).getPopulation().get(i).getInfo().getName() + " and at " + j + " " + traces.get(scenario.getTicks()).getPopulation().get(j).getInfo().getName());
-                }
-            }
-        }
+        // Below is a dulpicate person finder
+//        int tSize = traces.get(scenario.getTicks()).getPopulation().size();
+//        System.out.println("Rocket last trace size " + tSize);
+//        for(int i=0; i < tSize; i++)
+//        {
+//            for(int j=0; j < tSize; j++)
+//            {
+//                if(i!=j && traces.get(scenario.getTicks()).getPopulation().get(i).getInfo().getName().equals(traces.get(scenario.getTicks()).getPopulation().get(j).getInfo().getName()))
+//                {
+//                    System.out.println("dup found: at " + i + " " + traces.get(scenario.getTicks()).getPopulation().get(i).getInfo().getName() + " and at " + j + " " + traces.get(scenario.getTicks()).getPopulation().get(j).getInfo().getName());
+//                }
+//            }
+//        }
         
         statistics.replaceAll((k, v) -> statistics2.get(k).stream().map(RWStatistics::getStatistics).collect(Collectors.toList()));
 
