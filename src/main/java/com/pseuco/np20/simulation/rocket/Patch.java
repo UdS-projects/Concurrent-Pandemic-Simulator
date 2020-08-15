@@ -251,7 +251,7 @@ public class Patch extends Thread implements Context
 
         for(Person person : population)
         {
-            validator.onPersonTick(currentTick, id, person.getId());
+            validator.onPersonTick(currentTick+1, id, person.getId());
             person.tick();
         }
 
