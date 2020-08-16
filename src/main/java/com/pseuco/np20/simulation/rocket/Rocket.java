@@ -69,8 +69,6 @@ public class Rocket implements Simulation
         validator = pValidator;
 
         ticksAllowed = calcTicksAllowed();
-        //System.out.println("TicksAllowed: " + ticksAllowed);
-
         if(ticksAllowed <= 0)
         {
             throw new InsufficientPaddingException(padding);
@@ -104,8 +102,10 @@ public class Rocket implements Simulation
 
     private int calcTicksAllowed()
     {
-        for (int i = 1; i <= padding; i++) {
-            if(padding < (( (int) Math.ceil((double) i / scenario.getParameters().getIncubationTime()) * scenario.getParameters().getInfectionRadius())+i+1)) {
+        for(int i = 1; i <= padding; i++)
+        {
+            if(padding < (((int)Math.ceil((double) i / scenario.getParameters().getIncubationTime()) * scenario.getParameters().getInfectionRadius()) + i+1))
+            {
                 return i - 1;
             }
         }
@@ -139,17 +139,6 @@ public class Rocket implements Simulation
             statistics2.put(queryKey, list);
         }
     }
-
-//    private void initTraces()
-//    {
-//        if(scenario.getTrace())
-//        {
-//            for(int i=0; i <= scenario.getTicks(); i++)
-//            {
-//                traces.add(new TraceEntry(new LinkedList<>()));
-//            }
-//        }
-//    }
 
     private void initTraces()
     {
@@ -349,7 +338,7 @@ public class Rocket implements Simulation
             }
         }
 
-        // Below is a dulpicate person finder
+        // Below is a duplicate person finder
 //        int tSize = traces.get(scenario.getTicks()).getPopulation().size();
 //        System.out.println("Rocket last trace size " + tSize);
 //        for(int i=0; i < tSize; i++)

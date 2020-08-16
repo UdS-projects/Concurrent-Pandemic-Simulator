@@ -18,6 +18,6 @@ public class TestCorrectness {
 
 //    @Test
 //    public void ourTest() {
-//        TestCase.getPublic("we_love_np").launchRocket(3);
+//        TestCase.getPublic("we_love_np").launchRocket(7);
 //    }
 }

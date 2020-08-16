@@ -308,7 +308,7 @@ public class Patch extends Thread implements Context
         for(; currentTick < this.scenario.getTicks(); currentTick++)
         {
             //System.out.println("t" + id + " tick " + currentTick);
-            if (ticksAllowedCounter == (ticksAllowed - 1))
+            if(ticksAllowedCounter == (ticksAllowed - 1))
             {
                 try
                 {
