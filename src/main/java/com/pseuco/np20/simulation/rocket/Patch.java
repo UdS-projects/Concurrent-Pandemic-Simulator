@@ -118,21 +118,18 @@ public class Patch extends Thread implements Context
     // At the end, Rocket will add those up
     private void extendStatistics()
     {
+        List<Person> list = population.stream().filter( (Person person) -> patchGrid.contains(person.getPosition()) ).collect(Collectors.toList());
         for(Map.Entry<String, Query> entry : scenario.getQueries().entrySet()) {
             final Query query = entry.getValue();
             statistics.get(entry.getKey()).add(new Statistics(
-                    population.stream().filter(
-                            (Person person) -> person.isSusceptible() && query.getArea().contains(person.getPosition()) && patchGrid.contains(person.getPosition())
-                    ).count(),
-                    population.stream().filter(
-                            (Person person) -> person.isInfected() && query.getArea().contains(person.getPosition()) && patchGrid.contains(person.getPosition())
-                    ).count(),
-                    population.stream().filter(
-                            (Person person) -> person.isInfectious() && query.getArea().contains(person.getPosition()) && patchGrid.contains(person.getPosition())
-                    ).count(),
-                    population.stream().filter(
-                            (Person person) -> person.isRecovered() && query.getArea().contains(person.getPosition()) && patchGrid.contains(person.getPosition())
-                    ).count()
+                    list.stream().filter(
+                            (Person person) -> person.isSusceptible() && query.getArea().contains(person.getPosition()) ).count(),
+                    list.stream().filter(
+                            (Person person) -> person.isInfected() && query.getArea().contains(person.getPosition()) ).count(),
+                    list.stream().filter(
+                            (Person person) -> person.isInfectious() && query.getArea().contains(person.getPosition()) ).count(),
+                    list.stream().filter(
+                            (Person person) -> person.isRecovered() && query.getArea().contains(person.getPosition()) ).count()
             ));
         }
     }
