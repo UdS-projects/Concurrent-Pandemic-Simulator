@@ -27,7 +27,8 @@ public class Rocket implements Simulation
     private final Validator validator;
 
     private final List<Person> scenarioPopulation;
-    private final Map<Integer, Patch> patches;
+    private final Map<Integer, Rectangle> patchRectangles;
+    private Patch[] patches;
     private final Set<Monitor> monitors;
 
     private final Map<String, List<Statistics>> statistics;
@@ -56,7 +57,7 @@ public class Rocket implements Simulation
     public Rocket(Scenario pScenario, int pPadding, Validator pValidator) throws InsufficientPaddingException
     {
         scenarioPopulation = new ArrayList<>();
-        patches = new HashMap<>();
+        patchRectangles = new HashMap<>();
         monitors = new HashSet<>();
 
         statistics = new HashMap<>();
@@ -75,11 +76,6 @@ public class Rocket implements Simulation
         }
 //        System.out.println("Padding: " + padding);
 //        System.out.println("Allowed Ticks: " + ticksAllowed);
-
-        populate();
-        initStatistics();
-        initTraces();
-        initThreads();
     }
 
 
@@ -154,110 +150,134 @@ public class Rocket implements Simulation
     private void initThreads()
     {
         Iterator<Rectangle> patchesIterator = Utils.getPatches(scenario);
-        int patchId = 0;
-
-        while(patchesIterator.hasNext())
+        for(int i=0; patchesIterator.hasNext(); i++)
         {
-            Rectangle patch = patchesIterator.next();
-            Rectangle[] paddings = new Rectangle[8];
+            patchRectangles.put(i, patchesIterator.next());
+        }
+        patches = new Patch[patchRectangles.size()];
 
-            // We compute the up to 8 padding rectangles for every patch
-            // Hereby we make sure not to make paddings which exceed the scenario map in any direction
-            // If a padding is possible and required in one of the 8 possible directions,
-            // we save it in a clockwise order in the paddings array
-            if(patch.getTopLeft().getY() > 0)
+        Thread[] helpers = new Thread[patchRectangles.size()];
+        for(int i=0; i < patchRectangles.size(); i++)
+        {
+            int finalI = i;
+            helpers[i] = new Thread()
             {
-                Rectangle pTop = new Rectangle(
-                        new XY(patch.getTopLeft().getX(), Math.max(0, patch.getTopLeft().getY() - padding)),
-                        new XY(patch.getSize().getX(), Math.min(padding, patch.getTopLeft().getY())));
-                if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pTop, patch))
+                public void run()
                 {
-                    paddings[0] = pTop;
-                }
-            }
-            if(patch.getTopLeft().getX() > 0)
-            {
-                Rectangle pLeft = new Rectangle(
-                        new XY(Math.max(0, patch.getTopLeft().getX() - padding), patch.getTopLeft().getY()),
-                        new XY(Math.min(padding, patch.getTopLeft().getX()), patch.getSize().getY()));
-                if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pLeft, patch))
-                {
-                    paddings[6] = pLeft;
-                }
-            }
-            if(patch.getTopLeft().getY() > 0 && patch.getTopLeft().getX() > 0)
-            {
-                Rectangle pTopLeft = new Rectangle(
-                        new XY(Math.max(0, patch.getTopLeft().getX() - padding), Math.max(0, patch.getTopLeft().getY() - padding)),
-                        new XY(Math.min(padding, patch.getTopLeft().getX()) , Math.min(padding, patch.getTopLeft().getY())));
-                if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pTopLeft, patch))
-                {
-                    paddings[7] = pTopLeft;
-                }
-            }
-            if(patch.getBottomRight().getX() < scenario.getGrid().getBottomRight().getX())
-            {
-                Rectangle pRight = new Rectangle(
-                        new XY(patch.getBottomRight().getX(), patch.getTopLeft().getY()),
-                        new XY(Math.min(padding, scenario.getGrid().getBottomRight().getX() - patch.getBottomRight().getX()), patch.getSize().getY()));
-                if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pRight, patch))
-                {
-                    paddings[2] = pRight;
-                }
-            }
-            if(patch.getTopLeft().getY() > 0 && patch.getBottomRight().getX() < scenario.getGrid().getBottomRight().getX())
-            {
-                Rectangle pTopRight = new Rectangle(
-                        new XY(patch.getBottomRight().getX(), Math.max(0, patch.getTopLeft().getY() - padding)),
-                        new XY(Math.min(padding, scenario.getGrid().getBottomRight().getX() - patch.getBottomRight().getX()), Math.min(padding, patch.getTopLeft().getY())));
-                if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pTopRight, patch))
-                {
-                    paddings[1] = pTopRight;
-                }
-            }
-            if(patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
-            {
-                Rectangle pBottom = new Rectangle(
-                        new XY(patch.getTopLeft().getX(), patch.getBottomRight().getY()),
-                        new XY(patch.getSize().getX(), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
-                if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pBottom, patch))
-                {
-                    paddings[4] = pBottom;
-                }
-            }
-            if(patch.getTopLeft().getX() > 0 && patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
-            {
-                Rectangle pBottomLeft = new Rectangle(
-                        new XY(Math.max(0, patch.getTopLeft().getX() - padding), patch.getBottomRight().getY()),
-                        new XY(Math.min(padding, patch.getTopLeft().getX()), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
-                if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pBottomLeft, patch))
-                {
-                    paddings[5] = pBottomLeft;
-                }
-            }
-            if(patch.getBottomRight().getX() < scenario.getGrid().getBottomRight().getX() && patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
-            {
-                Rectangle pBottomRight = new Rectangle(
-                        new XY(patch.getBottomRight().getX(), patch.getBottomRight().getY()),
-                        new XY(Math.min(padding, scenario.getGrid().getBottomRight().getX() - patch.getBottomRight().getX()), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
-                if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pBottomRight, patch))
-                {
-                    paddings[3] = pBottomRight;
-                }
-            }
+                    Rectangle patch = patchRectangles.get(finalI);
+                    Rectangle[] paddings = new Rectangle[8];
 
-            Patch p = new Patch(patchId, ticksAllowed, scenario, validator, patch, paddings, scenarioPopulation);
-            patches.put(patchId, p);
-            patchId++;
+                    // We compute the up to 8 padding rectangles for every patch
+                    // Hereby we make sure not to make paddings which exceed the scenario map in any direction
+                    // If a padding is possible and required in one of the 8 possible directions,
+                    // we save it in a clockwise order in the paddings array
+                    if(patch.getTopLeft().getY() > 0)
+                    {
+                        Rectangle pTop = new Rectangle(
+                                new XY(patch.getTopLeft().getX(), Math.max(0, patch.getTopLeft().getY() - padding)),
+                                new XY(patch.getSize().getX(), Math.min(padding, patch.getTopLeft().getY())));
+                        if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pTop, patch))
+                        {
+                            paddings[0] = pTop;
+                        }
+                    }
+                    if(patch.getTopLeft().getX() > 0)
+                    {
+                        Rectangle pLeft = new Rectangle(
+                                new XY(Math.max(0, patch.getTopLeft().getX() - padding), patch.getTopLeft().getY()),
+                                new XY(Math.min(padding, patch.getTopLeft().getX()), patch.getSize().getY()));
+                        if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pLeft, patch))
+                        {
+                            paddings[6] = pLeft;
+                        }
+                    }
+                    if(patch.getTopLeft().getY() > 0 && patch.getTopLeft().getX() > 0)
+                    {
+                        Rectangle pTopLeft = new Rectangle(
+                                new XY(Math.max(0, patch.getTopLeft().getX() - padding), Math.max(0, patch.getTopLeft().getY() - padding)),
+                                new XY(Math.min(padding, patch.getTopLeft().getX()) , Math.min(padding, patch.getTopLeft().getY())));
+                        if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pTopLeft, patch))
+                        {
+                            paddings[7] = pTopLeft;
+                        }
+                    }
+                    if(patch.getBottomRight().getX() < scenario.getGrid().getBottomRight().getX())
+                    {
+                        Rectangle pRight = new Rectangle(
+                                new XY(patch.getBottomRight().getX(), patch.getTopLeft().getY()),
+                                new XY(Math.min(padding, scenario.getGrid().getBottomRight().getX() - patch.getBottomRight().getX()), patch.getSize().getY()));
+                        if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pRight, patch))
+                        {
+                            paddings[2] = pRight;
+                        }
+                    }
+                    if(patch.getTopLeft().getY() > 0 && patch.getBottomRight().getX() < scenario.getGrid().getBottomRight().getX())
+                    {
+                        Rectangle pTopRight = new Rectangle(
+                                new XY(patch.getBottomRight().getX(), Math.max(0, patch.getTopLeft().getY() - padding)),
+                                new XY(Math.min(padding, scenario.getGrid().getBottomRight().getX() - patch.getBottomRight().getX()), Math.min(padding, patch.getTopLeft().getY())));
+                        if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pTopRight, patch))
+                        {
+                            paddings[1] = pTopRight;
+                        }
+                    }
+                    if(patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
+                    {
+                        Rectangle pBottom = new Rectangle(
+                                new XY(patch.getTopLeft().getX(), patch.getBottomRight().getY()),
+                                new XY(patch.getSize().getX(), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
+                        if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pBottom, patch))
+                        {
+                            paddings[4] = pBottom;
+                        }
+                    }
+                    if(patch.getTopLeft().getX() > 0 && patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
+                    {
+                        Rectangle pBottomLeft = new Rectangle(
+                                new XY(Math.max(0, patch.getTopLeft().getX() - padding), patch.getBottomRight().getY()),
+                                new XY(Math.min(padding, patch.getTopLeft().getX()), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
+                        if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pBottomLeft, patch))
+                        {
+                            paddings[5] = pBottomLeft;
+                        }
+                    }
+                    if(patch.getBottomRight().getX() < scenario.getGrid().getBottomRight().getX() && patch.getBottomRight().getY() < scenario.getGrid().getBottomRight().getY())
+                    {
+                        Rectangle pBottomRight = new Rectangle(
+                                new XY(patch.getBottomRight().getX(), patch.getBottomRight().getY()),
+                                new XY(Math.min(padding, scenario.getGrid().getBottomRight().getX() - patch.getBottomRight().getX()), Math.min(padding, scenario.getGrid().getBottomRight().getY() - patch.getBottomRight().getY())));
+                        if(com.pseuco.np20.simulation.common.Utils.mayPropagateFrom(scenario, pBottomRight, patch))
+                        {
+                            paddings[3] = pBottomRight;
+                        }
+                    }
+
+                    Patch p = new Patch(finalI, ticksAllowed, scenario, validator, patch, paddings, scenarioPopulation);
+                    patches[finalI] = p;
+                }
+            };
+            helpers[i].start();
         }
 
-        patchCount = patchId;
+        for(int i=0; i < patchRectangles.size(); i++)
+        {
+            try
+            {
+                helpers[i].join();
+            }
+            catch(InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        patchCount = patchRectangles.size();
         for(int i=0; i < patchCount; i++)
         {
-            Patch pi = patches.get(i);
+            Patch pi = patches[i];
             for(int j=i+1; j < patchCount; j++)
             {
-                Patch pj = patches.get(j);
+                Patch pj = patches[j];
                 for(int k=0; k < 8; k++)
                 {
                     //System.out.println(k + " " + pi.getPaddings()[k]);
@@ -305,24 +325,46 @@ public class Rocket implements Simulation
     @Override
     public void run()
     {
+        populate();
+        Thread initStatsThread = new Thread()
+        {
+            public void run()
+            {
+                initStatistics();
+            }
+        };
+        initStatsThread.start();
+        initTraces();
+        initThreads();
+
         for(int i=0; i < patchCount; i++)
         {
-            patches.get(i).start();
+            patches[i].start();
         }
+
+        try
+        {
+            initStatsThread.join();
+        }
+        catch(InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+
         for(int i=0; i < patchCount; i++)
         {
             try
             {
-                patches.get(i).join();
+                patches[i].join();
             }
             catch(InterruptedException e)
             {
                 e.printStackTrace();
             }
 
-            for(String queryKey : patches.get(i).getStatistics().keySet())
+            for(String queryKey : patches[i].getStatistics().keySet())
             {
-                List<Statistics> list = patches.get(i).getStatistics().get(queryKey);
+                List<Statistics> list = patches[i].getStatistics().get(queryKey);
                 for(int j=0; j < list.size(); j++)
                 {
                     statistics2.get(queryKey).get(j).addStats(list.get(j));
@@ -333,7 +375,7 @@ public class Rocket implements Simulation
             {
                 for(int j=0; j < traces.size(); j++)
                 {
-                    traces.get(j).getPopulation().addAll(patches.get(i).getTraces().get(j).getPopulation());
+                    traces.get(j).getPopulation().addAll(patches[i].getTraces().get(j).getPopulation());
                 }
             }
         }

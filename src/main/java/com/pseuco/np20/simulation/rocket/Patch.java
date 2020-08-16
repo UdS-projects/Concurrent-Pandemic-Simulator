@@ -206,7 +206,9 @@ public class Patch extends Thread implements Context
                 {
                     try
                     {
-                        results[finalI] = monitors.get(finalI).getPopulation(id);
+                        List<Person> l = monitors.get(finalI).getPopulation(id);
+                        l.sort( (Person p1, Person p2) -> p1.getId() - p2.getId() );
+                        results[finalI] = l;
                     }
                     catch(InterruptedException e)
                     {
