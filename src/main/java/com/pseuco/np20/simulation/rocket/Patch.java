@@ -12,7 +12,7 @@ public class Patch extends Thread implements Context
 {
     private final int id;
     private final int ticksAllowed;
-    private int tickCounter;
+    private int ticksAllowedCounter;
     private int currentTick;
 
     private final Scenario scenario;
@@ -251,22 +251,7 @@ public class Patch extends Thread implements Context
             }
         }
          */
-        if (tickCounter == (ticksAllowed - 1))
-        {
-            try
-            {
-                synchronize();
-                tickCounter = 0;
-            }
-            catch (InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-        }
-        else
-        {
-            tickCounter++;
-        }
+
 
         for(Person person : population)
         {
@@ -315,10 +300,31 @@ public class Patch extends Thread implements Context
         initStatistics();
         extendStatistics();
         extendTraces();
-
+        try {
+            synchronize();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         for(; currentTick < this.scenario.getTicks(); currentTick++)
         {
             //System.out.println("t" + id + " tick " + currentTick);
+            if (ticksAllowedCounter == (ticksAllowed - 1))
+            {
+                try
+                {
+                    synchronize();
+                    ticksAllowedCounter = 0;
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            else
+            {
+                ticksAllowedCounter++;
+            }
+
             validator.onPatchTick(currentTick, id);
             tick();
         }
