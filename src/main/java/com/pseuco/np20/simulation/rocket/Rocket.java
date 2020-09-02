@@ -79,13 +79,13 @@ public class Rocket implements Simulation
     }
 
 
-    private int calcTicksAllowed2()
+    private int calcTicksAllowed()
     {
         int ticks = 0;
-        int spread = 0;
+        int spread = scenario.getParameters().getInfectionRadius();
         for(int i=1; spread <= padding; i++)
         {
-            if(i % (scenario.getParameters().getIncubationTime() + 1) == 1)
+            if(i % (scenario.getParameters().getIncubationTime() + 1) == 0)
             {
                 spread += scenario.getParameters().getInfectionRadius();
             }
@@ -96,7 +96,7 @@ public class Rocket implements Simulation
     }
 
 
-    private int calcTicksAllowed()
+    private int calcTicksAllowed2()
     {
         for(int i = 1; i <= padding; i++)
         {
@@ -291,16 +291,6 @@ public class Rocket implements Simulation
                             m.setIntersection(j, pj.getPatchGrid().intersect(pi.getPaddings()[k]));
                             int w = (k + 4) % 8;
                             m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
-//                            try
-//                            {
-//                                m.setIntersection(i, pi.getPatchGrid().intersect(pj.getPaddings()[w]));
-//                            }
-//                            catch (NullPointerException e)
-//                            {
-//                                System.out.println("Rec " + i + " grid " + pi.getPatchGrid().toString());
-//                                System.out.println("Rec " + j + " grid " + pj.getPatchGrid().toString());
-//                                throw e;
-//                            }
 
                             if(monitors.add(m))
                             {
@@ -394,7 +384,7 @@ public class Rocket implements Simulation
 //            }
 //        }
         
-        statistics.replaceAll((k, v) -> statistics2.get(k).stream().map(RWStatistics::getStatistics).collect(Collectors.toList()));
+        statistics.replaceAll( (k, v) -> statistics2.get(k).stream().map(RWStatistics::getStatistics).collect(Collectors.toList()) );
 
         if(scenario.getTrace())
         {

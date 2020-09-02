@@ -12,7 +12,6 @@ public class Patch extends Thread implements Context
 {
     private final int id;
     private final int ticksAllowed;
-    private int ticksAllowedCounter;
     private int currentTick;
 
     private final Scenario scenario;
@@ -139,9 +138,6 @@ public class Patch extends Thread implements Context
     {
         if(scenario.getTrace())
         {
-//            traces.add(new TraceEntry(population.stream()
-//                    .filter( (Person person) -> patchGrid.contains(person.getPosition()) )
-//                    .map(Person::getInfo).collect(Collectors.toList())));
             traces.add(new TraceEntryId(population.stream()
                     .filter( (Person person) -> patchGrid.contains(person.getPosition()) )
                     .map( (Person p) -> new PersonInfoId(p) ).collect(Collectors.toList())));
@@ -195,7 +191,7 @@ public class Patch extends Thread implements Context
         List[] results = new List[monitors.size()];
         for(int i=0; i < monitors.size(); i++)
         {
-            //System.out.println("hey, im " + Thread.currentThread() + " mon size: " + monitors.size());
+            //System.out.println("hi, my name is " + Thread.currentThread() + " mon size: " + monitors.size());
             int finalI = i;
             readers[i] = new Thread()
             {
@@ -237,7 +233,6 @@ public class Patch extends Thread implements Context
 
     private void tick()
     {
-        /**   This is a Try
         if(currentTick % ticksAllowed == 0)
         {
             try
@@ -249,8 +244,6 @@ public class Patch extends Thread implements Context
                 e.printStackTrace();
             }
         }
-         */
-
 
         for(Person person : population)
         {
@@ -299,31 +292,10 @@ public class Patch extends Thread implements Context
         initStatistics();
         extendStatistics();
         extendTraces();
-        try {
-            synchronize();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
         for(; currentTick < this.scenario.getTicks(); currentTick++)
         {
             //System.out.println("t" + id + " tick " + currentTick);
-            if(ticksAllowedCounter == (ticksAllowed - 1))
-            {
-                try
-                {
-                    synchronize();
-                    ticksAllowedCounter = 0;
-                }
-                catch (InterruptedException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-            else
-            {
-                ticksAllowedCounter++;
-            }
-
             validator.onPatchTick(currentTick, id);
             tick();
         }
