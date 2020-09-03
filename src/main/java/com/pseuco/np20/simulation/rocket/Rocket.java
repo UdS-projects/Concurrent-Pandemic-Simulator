@@ -95,20 +95,6 @@ public class Rocket implements Simulation
         return ticks - 1;
     }
 
-
-    private int calcTicksAllowed2()
-    {
-        for(int i = 1; i <= padding; i++)
-        {
-            if(padding < (((int)Math.ceil((double) i / scenario.getParameters().getIncubationTime()) * scenario.getParameters().getInfectionRadius()) + i+1))
-            {
-                return i - 1;
-            }
-        }
-        return 0;
-    }
-
-
     // We create the initial allPopulation list here so that everyone has a unique id
     private void populate()
     {
