@@ -72,13 +72,41 @@ public class Monitor
         }
     }
 
+    public synchronized boolean canRead(int id)
+    {
+        if(id == patchId1)
+        {
+            return pop2Full;
+        }
+        else if(id == patchId2)
+        {
+            return pop1Full;
+        }
+
+        return true;
+    }
+
+    public synchronized boolean canWrite(int id)
+    {
+        if(id == patchId1)
+        {
+            return !pop1Full;
+        }
+        else if(id == patchId2)
+        {
+            return !pop2Full;
+        }
+
+        return true;
+    }
+
     public synchronized List<Person> getPopulation(int id) throws InterruptedException {
         if(id == patchId1)
         {
-            while(!pop2Full)
-            {
-                wait();
-            }
+//            while(!pop2Full)
+//            {
+//                wait();
+//            }
             List<Person> result = new LinkedList<>();
             Iterator<Person> iter = population2.iterator();
             while(iter.hasNext())
@@ -87,15 +115,15 @@ public class Monitor
             }
             population2.clear();
             pop2Full = false;
-            notifyAll();
+            patch2.signalWrite();
             return result;
         }
         else if(id == patchId2)
         {
-            while(!pop1Full)
-            {
-                wait();
-            }
+//            while(!pop1Full)
+//            {
+//                wait();
+//            }
             List<Person> result = new LinkedList<>();
             Iterator<Person> iter = population1.iterator();
             while(iter.hasNext())
@@ -104,7 +132,7 @@ public class Monitor
             }
             population1.clear();
             pop1Full = false;
-            notifyAll();
+            patch1.signalWrite();
             return result;
         }
 
@@ -115,31 +143,31 @@ public class Monitor
     {
         if(id == patchId1)
         {
-            while(pop1Full)
-            {
-                wait();
-            }
+//            while(pop1Full)
+//            {
+//                wait();
+//            }
             Iterator<Person> iter = people.iterator();
             while(iter.hasNext())
             {
                 population1.add(iter.next().clone(patch2));
             }
             pop1Full = true;
-            notifyAll();
+            patch2.signalRead();
         }
         else if(id == patchId2)
         {
-            while(pop2Full)
-            {
-                wait();
-            }
+//            while(pop2Full)
+//            {
+//                wait();
+//            }
             Iterator<Person> iter = people.iterator();
             while(iter.hasNext())
             {
                 population2.add(iter.next().clone(patch1));
             }
             pop2Full = true;
-            notifyAll();
+            patch1.signalRead();
         }
     }
 

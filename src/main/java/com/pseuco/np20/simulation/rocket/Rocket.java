@@ -85,14 +85,14 @@ public class Rocket implements Simulation
         int spread = scenario.getParameters().getInfectionRadius();
         for(int i=1; spread <= padding; i++)
         {
-            if(i % (scenario.getParameters().getIncubationTime() + 1) == 0)
+            if(i != 1 && i % scenario.getParameters().getIncubationTime() == 1)
             {
                 spread += scenario.getParameters().getInfectionRadius();
             }
             spread += 2;
             ticks = i;
         }
-     return ticks - 1;
+        return ticks - 1;
     }
 
 
