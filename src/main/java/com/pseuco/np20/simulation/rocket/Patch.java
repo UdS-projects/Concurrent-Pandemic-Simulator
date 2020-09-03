@@ -238,9 +238,9 @@ public class Patch extends Thread implements Context
                         ).collect(Collectors.toList());
                         try
                         {
-                            System.out.println("t" + id + " here2 ");
+                            //System.out.println("t" + id + " here2 ");
                             monitors.get(i).setPopulation(id, people);
-                            System.out.println("t" + id + " here3 ");
+                            //System.out.println("t" + id + " here3 ");
                         }
                         catch(InterruptedException e)
                         {
@@ -253,7 +253,7 @@ public class Patch extends Thread implements Context
                 }
             }
 
-            System.out.println("t" + id + " here ");
+            //System.out.println("t" + id + " here ");
 
             if(monitorsWrittenCount < monitors.size())
             {
@@ -441,7 +441,7 @@ public class Patch extends Thread implements Context
 
         for(; currentTick < this.scenario.getTicks(); currentTick++)
         {
-            System.out.println("t" + id + " tick " + currentTick);
+            //System.out.println("t" + id + " tick " + currentTick);
             validator.onPatchTick(currentTick, id);
             tick();
         }
