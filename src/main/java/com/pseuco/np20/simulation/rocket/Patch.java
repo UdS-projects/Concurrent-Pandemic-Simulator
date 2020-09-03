@@ -6,9 +6,6 @@ import com.pseuco.np20.simulation.common.Person;
 import com.pseuco.np20.validator.Validator;
 
 import java.util.*;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class Patch extends Thread implements Context
@@ -28,11 +25,6 @@ public class Patch extends Thread implements Context
     private final List<Person> population;
 
     private final PatchWait waiter = new PatchWait();
-    private final Lock l = new ReentrantLock();
-    private final Condition canWrite = l.newCondition();
-    private boolean canWriteB;
-    private final Condition canRead = l.newCondition();
-    private boolean canReadB;
 
     private final Map<String, List<Statistics>> statistics;
     private final List<TraceEntryId> traces;
@@ -164,55 +156,13 @@ public class Patch extends Thread implements Context
         }
     }
 
-    private synchronized boolean getCanWriteB()
-    {
-        if(canWriteB)
-        {
-            canWriteB = false;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    private synchronized boolean getCanReadB()
-    {
-        if(canReadB)
-        {
-            canReadB = false;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    private synchronized void setCanWriteB()
-    {
-        canWriteB = false;
-    }
-
-    private synchronized void setCanReadB()
-    {
-        canReadB = false;
-    }
-
     public void signalWrite()
     {
-        //canWriteB = true;
-        //canWrite.signal();
-        //notify();
         waiter.signalWrite();
     }
 
     public void signalRead()
     {
-        //canReadB = true;
-        //canRead.signal();
-        //notify();
         waiter.signalRead();
     }
 
@@ -221,6 +171,11 @@ public class Patch extends Thread implements Context
         // Delete people in paddings
         population.removeIf(person -> !(patchGrid.contains(person.getPosition())));
 
+        // Here people will be written into the monitors
+        // monitorsWritten tells us which monitors we still need to write to
+        // in case one of them is not ready to be written to after the first for-loop
+        // We additionally wait after that first for-loop in the PatchWait.java monitor
+        // until one of the Monitor.java monitors notifies us to wake up
         boolean[] monitorsWritten = new boolean[monitors.size()];
         int monitorsWrittenCount = 0;
 
@@ -238,9 +193,7 @@ public class Patch extends Thread implements Context
                         ).collect(Collectors.toList());
                         try
                         {
-                            //System.out.println("t" + id + " here2 ");
                             monitors.get(i).setPopulation(id, people);
-                            //System.out.println("t" + id + " here3 ");
                         }
                         catch(InterruptedException e)
                         {
@@ -253,13 +206,8 @@ public class Patch extends Thread implements Context
                 }
             }
 
-            //System.out.println("t" + id + " here ");
-
             if(monitorsWrittenCount < monitors.size())
             {
-                //canWrite.await();
-                //wait();
-                //setCanWriteB();
                 waiter.writeWait();
             }
         }
@@ -294,6 +242,7 @@ public class Patch extends Thread implements Context
 //            writers[i].join();
 //        }
 
+        // Reading uses the same principle as writing
         boolean[] monitorsRead = new boolean[monitors.size()];
         int monitorsReadCount = 0;
 
@@ -322,9 +271,6 @@ public class Patch extends Thread implements Context
 
             if(monitorsReadCount < monitors.size())
             {
-                //canRead.await();
-                //wait();
-                //setCanReadB();
                 waiter.readWait();
             }
         }
@@ -391,6 +337,8 @@ public class Patch extends Thread implements Context
             }
         }
 
+        validator.onPatchTick(currentTick, id);
+
         for(Person person : population)
         {
             validator.onPersonTick(currentTick, id, person.getId());
@@ -442,7 +390,6 @@ public class Patch extends Thread implements Context
         for(; currentTick < this.scenario.getTicks(); currentTick++)
         {
             //System.out.println("t" + id + " tick " + currentTick);
-            validator.onPatchTick(currentTick, id);
             tick();
         }
     }

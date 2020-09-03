@@ -2,6 +2,9 @@ package com.pseuco.np20.simulation.rocket;
 
 public class PatchWait
 {
+    // The below booleans allow as to not miss out on a notify()
+    // which might arrive shortly before we wait()
+    // And so no notify() will "miss" us
     private boolean canWriteB;
     private boolean canReadB;
 
@@ -44,14 +47,12 @@ public class PatchWait
     public synchronized void signalWrite()
     {
         canWriteB = true;
-        //canWrite.signal();
         notify();
     }
 
     public synchronized void signalRead()
     {
         canReadB = true;
-        //canRead.signal();
         notify();
     }
 
