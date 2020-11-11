@@ -212,6 +212,7 @@ public class Patch extends Thread implements Context
             }
         }
 
+        // OLD CODE
         // Write into the monitors in parallel
         // This is ok because those writer threads ONLY read from non-locked data
 //        Thread[] writers = new Thread[monitors.size()];
@@ -277,6 +278,7 @@ public class Patch extends Thread implements Context
 
         population.sort( (Person p1, Person p2) -> p1.getId() - p2.getId() );
 
+        // OLD CODE
         // Read from the monitors in parallel
         // This is ok because writing the people into local memory will happen sequentially afterwards
 //        Thread[] readers = new Thread[monitors.size()];
