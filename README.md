@@ -1,4 +1,7 @@
 # Concurrent Pandemic Simulation
+
+**Below is the unedited project readme file, as originally supplied with the assignment. Do note that this project also included writing an [implementation Wiki](https://github.com/UdS-projects/Concurrent-Pandemic-Simulator/wiki).**
+
 Reference implementation and framework for the concurrent programming project 2020.
 
 ## Structure
